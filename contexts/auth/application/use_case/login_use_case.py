@@ -16,5 +16,6 @@ class LoginUseCase:
 
         
         return self.jwt_service.generate_token({
-            "email": login_dto.email
+            "id": user.id,
+            "email": user.email
         })
