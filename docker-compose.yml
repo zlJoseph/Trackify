@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    container_name: trackify-app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - rabbitmq
+    env_file:
+      - .env.example
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - trackify-network
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root1234
+      POSTGRES_DB: trackify
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - trackify-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: root1234
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"'
+    volumes:
+      - ./rabbit-definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - trackify-network
+
+volumes:
+  postgres_data:
+
+networks:
+  trackify-network:
+    driver: bridge

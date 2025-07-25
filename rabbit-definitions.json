@@ -1,0 +1,144 @@
+{
+  "vhosts": [{ "name": "/" }],
+  "users": [
+    {
+      "name": "root",
+      "password": "root1234",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "root",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "trackify.fanout",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false
+    },
+    {
+      "name": "users.user_created.direct",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true
+    },
+    {
+      "name": "users.user_created.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true
+    },
+    {
+      "name": "auth.user_created.direct",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true
+    },
+    {
+      "name": "auth.user_created.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true
+    }
+  ],
+  "queues": [
+    {
+      "name": "users.user_created.queue",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "users.user_created.dlx"
+      }
+    },
+    {
+      "name": "users.user_created.retry",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-message-ttl": 5000,
+        "x-dead-letter-exchange": "users.user_created.direct",
+        "x-dead-letter-routing-key": "main"
+      }
+    },
+    {
+      "name": "users.user_created.dlq",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "auth.user_created.queue",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "auth.user_created.dlx"
+      }
+    },
+    {
+      "name": "auth.user_created.retry",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-message-ttl": 5000,
+        "x-dead-letter-exchange": "auth.user_created.direct",
+        "x-dead-letter-routing-key": "main"
+      }
+    },
+    {
+      "name": "auth.user_created.dlq",
+      "vhost": "/",
+      "durable": true
+    }
+  ],
+  "bindings": [
+    {
+      "source": "trackify.fanout",
+      "vhost": "/",
+      "destination": "users.user_created.queue",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "users.user_created.direct",
+      "vhost": "/",
+      "destination": "users.user_created.queue",
+      "destination_type": "queue",
+      "routing_key": "main"
+    },
+    {
+      "source": "users.user_created.dlx",
+      "vhost": "/",
+      "destination": "users.user_created.dlq",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "trackify.fanout",
+      "vhost": "/",
+      "destination": "auth.user_created.queue",
+      "destination_type": "queue",
+      "routing_key": ""
+    },
+    {
+      "source": "auth.user_created.direct",
+      "vhost": "/",
+      "destination": "auth.user_created.queue",
+      "destination_type": "queue",
+      "routing_key": "main"
+    },
+    {
+      "source": "auth.user_created.dlx",
+      "vhost": "/",
+      "destination": "auth.user_created.dlq",
+      "destination_type": "queue",
+      "routing_key": ""
+    }
+  ]
+}

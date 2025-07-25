@@ -1,0 +1,4 @@
+.env
+virtual
+
+.pytest_cache
